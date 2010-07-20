@@ -114,12 +114,12 @@
 							<xsl:choose>
 								<xsl:when test="current-group()/self::symbol[.='}']">
 									<attributes>
-										<xsl:copy-of select="current-group()[not(self::symbol[.=('{','}')])]" />
+										<xsl:copy-of select="current-group()[not(self::symbol[.=('{','}')])]"/>
 									</attributes>
 								</xsl:when>
 								<xsl:otherwise>
 									<selectors>
-										<xsl:copy-of select="current-group()" />
+										<xsl:copy-of select="current-group()"/>
 									</selectors>
 								</xsl:otherwise>
 							</xsl:choose>
@@ -127,13 +127,56 @@
 					</xsl:when>
 					<xsl:otherwise>
 						<selectors>
-							<xsl:copy-of select="current-group()" />
+							<xsl:copy-of select="current-group()"/>
 						</selectors>
 					</xsl:otherwise>
 				</xsl:choose>
 			</xsl:for-each-group>
 		</xsl:variable>
-		<xsl:copy-of select="$mode1"/> <!-- change $mode0 to $mode[0-9] for easy debug -->
+		<xsl:variable name="mode2">
+			<xsl:apply-templates mode="css2xml2" select="$mode1"/>
+		</xsl:variable>
+		<xsl:copy-of select="$mode2"/> <!-- change $mode0 to $mode[0-9] for easy debug -->
 	</xsl:template>
 
+	<xsl:template priority="-9" mode="css2xml2" match="@*|node()">
+		<xsl:copy>
+			<xsl:apply-templates mode="css2xml2" select="@*|node()"/>
+		</xsl:copy>
+	</xsl:template>
+
+	<xsl:template mode="css2xml2" match="/">
+		<xsl:for-each-group select="node()" group-ending-with="attributes">
+			<rule>
+				<xsl:apply-templates mode="css2xml2" select="current-group()"/>
+			</rule>
+		</xsl:for-each-group>
+	</xsl:template>
+
+	<xsl:template mode="css2xml2" match="selectors">
+		<xsl:for-each-group select="node()" group-adjacent="name()='symbol' and .=','">
+			<xsl:if test="not(current-grouping-key())">
+				<selector>
+					<xsl:apply-templates mode="css2xml2" select="current-group()"/>
+				</selector>
+			</xsl:if>
+		</xsl:for-each-group>
+	</xsl:template>
+
+	<xsl:template mode="css2xml2" match="selector/keyword | selector/value">
+		<name>
+			<xsl:value-of select="."/>
+		</name>
+	</xsl:template>
+
+	<xsl:template mode="css2xml2" match="attributes">
+		<xsl:for-each-group select="node()" group-adjacent="name()='symbol' and .=';'">
+			<xsl:if test="not(current-grouping-key())">
+				<attribute>
+					<xsl:apply-templates mode="css2xml2" select="current-group()" />
+				</attribute>
+			</xsl:if>
+		</xsl:for-each-group>
+	</xsl:template>
+		
 </xsl:stylesheet>
