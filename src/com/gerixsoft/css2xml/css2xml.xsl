@@ -13,7 +13,100 @@
 
 	<xsl:template name="css2xml">
 		<xsl:param name="text"/>
-		<xsl:value-of select="$text"/>
+		<xsl:variable name="config" select="document('css2xml.xml')/node()"/>
+		<xsl:variable name="mode0">
+			<xsl:variable name="regexps"
+				select="'/\*(.*?)\*/', '(''|&quot;)(.*?)\2', '(#[0-9a-fA-F]+)', '((-?\d+)(\.\d+)?(px|em|pt|%))', '([\w_\-]+)', '([\.,;:#\*!@/\{\}\(\)])'"/>
+			<xsl:analyze-string select="$text" regex="{string-join($regexps,'|')}" flags="si">
+				<xsl:matching-substring>
+					<xsl:choose>
+						<!-- multi line comment -->
+						<xsl:when test="regex-group(1)">
+							<xsl:comment>
+								<xsl:value-of select="regex-group(1)"/>
+							</xsl:comment>
+						</xsl:when>
+						<!-- string -->
+						<xsl:when test="regex-group(2)">
+							<string>
+								<xsl:value-of select="regex-group(3)"/>
+							</string>
+						</xsl:when>
+						<!-- color -->
+						<xsl:when test="regex-group(4)">
+							<color>
+								<xsl:value-of select="regex-group(4)"/>
+							</color>
+						</xsl:when>
+						<!-- size -->
+						<xsl:when test="regex-group(5)">
+							<size>
+								<xsl:value-of select="regex-group(5)"/>
+							</size>
+						</xsl:when>
+						<!-- alpha numeric -->
+						<xsl:when test="regex-group(9)">
+							<xsl:analyze-string select="regex-group(9)"
+								regex="^({string-join($config/keywords/keyword, '|')})$|^({string-join($config/values/value, '|')})$|^({string-join($config/fonts/font, '|')})$|^((-?\d+)(\.\d+)?)$"
+								flags="si">
+								<xsl:matching-substring>
+									<xsl:choose>
+										<!-- keyword -->
+										<xsl:when test="regex-group(1)">
+											<keyword>
+												<xsl:value-of select="regex-group(1)"/>
+											</keyword>
+										</xsl:when>
+										<!-- value -->
+										<xsl:when test="regex-group(2)">
+											<value>
+												<xsl:value-of select="regex-group(2)"/>
+											</value>
+										</xsl:when>
+										<!-- font -->
+										<xsl:when test="regex-group(3)">
+											<font>
+												<xsl:value-of select="regex-group(3)"/>
+											</font>
+										</xsl:when>
+										<!-- size -->
+										<xsl:when test="regex-group(4)">
+											<size>
+												<xsl:value-of select="regex-group(4)"/>
+											</size>
+										</xsl:when>
+										<xsl:otherwise>
+											<xsl:message terminate="yes" select="'internal error'"/>
+										</xsl:otherwise>
+									</xsl:choose>
+								</xsl:matching-substring>
+								<xsl:non-matching-substring>
+									<name>
+										<xsl:value-of select="."/>
+									</name>
+								</xsl:non-matching-substring>
+							</xsl:analyze-string>
+						</xsl:when>
+						<!-- symbol -->
+						<xsl:when test="regex-group(10)">
+							<symbol>
+								<xsl:value-of select="regex-group(10)"/>
+							</symbol>
+						</xsl:when>
+						<xsl:otherwise>
+							<xsl:message terminate="yes" select="'internal error'"/>
+						</xsl:otherwise>
+					</xsl:choose>
+				</xsl:matching-substring>
+				<xsl:non-matching-substring>
+					<xsl:if test="normalize-space()!=''">
+						<xsl:message select="concat('unknown token: ', .)"/>
+					</xsl:if>
+					<xsl:value-of select="."/>
+				</xsl:non-matching-substring>
+			</xsl:analyze-string>
+		</xsl:variable>
+		<xsl:copy-of select="$mode0"/> <!-- change $mode0 to $mode[0-9] for easy debug -->
 	</xsl:template>
-	
+
 </xsl:stylesheet>
