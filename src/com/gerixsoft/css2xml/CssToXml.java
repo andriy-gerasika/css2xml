@@ -1,4 +1,4 @@
-package com.gerixsoft.json2xml;
+package com.gerixsoft.css2xml;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -21,24 +21,24 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.AttributesImpl;
 
-public class JsonToXml {
+public class CssToXml {
 
 	public static void main(String[] args) throws ParserConfigurationException, IOException, SAXException, TransformerException {
 		if (args.length != 2) {
-			System.err.println("usage: <json-file> <xml-file>");
+			System.err.println("usage: <css-file> <xml-file>");
 			System.exit(-1);
 		}
-		json2xml(new File(args[0]), new File(args[1]));
+		css2xml(new File(args[0]), new File(args[1]));
 		System.out.println("ok");
 	}
 
-	public static void json2xml(File inputFile, File outputFile) throws ParserConfigurationException, IOException, SAXException, TransformerException {
+	public static void css2xml(File inputFile, File outputFile) throws ParserConfigurationException, IOException, SAXException, TransformerException {
 		SAXTransformerFactory handlerFactory = (SAXTransformerFactory) SAXTransformerFactory.newInstance();
-		TransformerHandler handler = handlerFactory.newTransformerHandler(new StreamSource(JsonToXml.class.getResource("json2xml.xsl").toString()));
+		TransformerHandler handler = handlerFactory.newTransformerHandler(new StreamSource(CssToXml.class.getResource("css2xml.xsl").toString()));
 		handler.getTransformer().setOutputProperty("indent", "yes");
 		handler.setResult(new StreamResult(outputFile));
 		handler.startDocument();
-		handler.startElement("", "json", "json", new AttributesImpl());
+		handler.startElement("", "css", "css", new AttributesImpl());
 		{
 			char[] text;
 			{
@@ -61,11 +61,11 @@ public class JsonToXml {
 			}
 			handler.characters(text, 0, text.length);
 		}
-		handler.endElement("", "json", "json");
+		handler.endElement("", "css", "css");
 		handler.endDocument();
 
 		SchemaFactory factory = SchemaFactory.newInstance("http://www.w3.org/2001/XMLSchema");
-		Schema schema = factory.newSchema(new StreamSource(JsonToXml.class.getResourceAsStream("json.xsd")));
+		Schema schema = factory.newSchema(new StreamSource(CssToXml.class.getResourceAsStream("css.xsd")));
 		Validator validator = schema.newValidator();
 		validator.setErrorHandler(new ErrorHandler() {
 			@Override
