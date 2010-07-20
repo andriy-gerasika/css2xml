@@ -139,7 +139,10 @@
 		<xsl:variable name="mode3">
 			<xsl:apply-templates mode="css2xml3" select="$mode2"/>
 		</xsl:variable>
-		<xsl:copy-of select="$mode3"/> <!-- change $mode0 to $mode[0-9] for easy debug -->
+		<xsl:variable name="mode4">
+			<xsl:apply-templates mode="css2xml4" select="$mode3"/>
+		</xsl:variable>
+		<xsl:copy-of select="$mode4"/> <!-- change $mode0 to $mode[0-9] for easy debug -->
 	</xsl:template>
 
 	<xsl:template priority="-9" mode="css2xml2" match="@*|node()">
@@ -200,6 +203,22 @@
 			<xsl:attribute name="name" select="node()[1]" />
 			<xsl:apply-templates mode="css2xml3" select="node() except(node()[1]|node()[2])" />
 		</xsl:copy>
+	</xsl:template>
+
+	<xsl:template priority="-9" mode="css2xml4" match="@*|node()">
+		<xsl:copy>
+			<xsl:apply-templates mode="css2xml4" select="@*|node()"/>
+		</xsl:copy>
+	</xsl:template>
+
+	<xsl:template mode="css2xml4" match="property[@name]">
+		<xsl:copy>
+			<xsl:apply-templates mode="css2xml4" select="@*|value|size|font|color,node() except (value|size|font|color)"/>
+		</xsl:copy>
+	</xsl:template>
+	
+	<xsl:template mode="css2xml4" match="property[@name]/*[self::value|self::size|self::font|self::color]">
+		<xsl:attribute name="{name()}" select="." />
 	</xsl:template>
 
 </xsl:stylesheet>
