@@ -47,7 +47,7 @@
 						<!-- alpha numeric -->
 						<xsl:when test="regex-group(9)">
 							<xsl:analyze-string select="regex-group(9)"
-								regex="^({string-join($config/keywords/keyword, '|')})$|^({string-join($config/values/value, '|')})$|^({string-join($config/fonts/font, '|')})$|^((-?\d+)(\.\d+)?)$"
+								regex="^({string-join($config/keyword, '|')})$|^({string-join($config/value, '|')})$|^({string-join($config/font, '|')})$|^((-?\d+)(\.\d+)?)$"
 								flags="si">
 								<xsl:matching-substring>
 									<xsl:choose>
