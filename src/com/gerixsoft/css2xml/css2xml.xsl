@@ -113,9 +113,9 @@
 						<xsl:for-each-group select="current-group()" group-ending-with="symbol[.='}']">
 							<xsl:choose>
 								<xsl:when test="current-group()/self::symbol[.='}']">
-									<attributes>
+									<properties>
 										<xsl:copy-of select="current-group()[not(self::symbol[.=('{','}')])]"/>
-									</attributes>
+									</properties>
 								</xsl:when>
 								<xsl:otherwise>
 									<selectors>
@@ -149,7 +149,7 @@
 	</xsl:template>
 
 	<xsl:template mode="css2xml2" match="/">
-		<xsl:for-each-group select="node()" group-ending-with="attributes">
+		<xsl:for-each-group select="node()" group-ending-with="properties">
 			<rule>
 				<xsl:apply-templates mode="css2xml2" select="current-group()"/>
 			</rule>
@@ -172,12 +172,12 @@
 		</name>
 	</xsl:template>
 
-	<xsl:template mode="css2xml2" match="attributes">
+	<xsl:template mode="css2xml2" match="properties">
 		<xsl:for-each-group select="node()" group-adjacent="name()='symbol' and .=';'">
 			<xsl:if test="not(current-grouping-key())">
-				<attribute>
+				<property>
 					<xsl:apply-templates mode="css2xml2" select="current-group()" />
-				</attribute>
+				</property>
 			</xsl:if>
 		</xsl:for-each-group>
 	</xsl:template>
@@ -188,14 +188,14 @@
 		</xsl:copy>
 	</xsl:template>
 
-	<xsl:template mode="css2xml3" match="attribute[node()]" priority="-1">
-		<xsl:message select="concat('unknown attribute: ', string-join(node(), ' '))" />
+	<xsl:template mode="css2xml3" match="property[node()]" priority="-1">
+		<xsl:message select="concat('unknown property: ', string-join(node(), ' '))" />
 		<xsl:next-match />
 	</xsl:template>
 
-	<xsl:template mode="css2xml3" match="attribute[not(node())]" />
+	<xsl:template mode="css2xml3" match="property[not(node())]" />
 
-	<xsl:template mode="css2xml3" match="attribute[node()[1]/(self::keyword|self::name) and node()[2]/self::symbol[.=':']]">
+	<xsl:template mode="css2xml3" match="property[node()[1]/(self::keyword|self::name) and node()[2]/self::symbol[.=':']]">
 		<xsl:copy>
 			<xsl:attribute name="name" select="node()[1]" />
 			<xsl:apply-templates mode="css2xml3" select="node() except(node()[1]|node()[2])" />
