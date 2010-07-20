@@ -106,7 +106,34 @@
 				</xsl:non-matching-substring>
 			</xsl:analyze-string>
 		</xsl:variable>
-		<xsl:copy-of select="$mode0"/> <!-- change $mode0 to $mode[0-9] for easy debug -->
+		<xsl:variable name="mode1">
+			<xsl:for-each-group select="$mode0/node()" group-starting-with="symbol[.='{']">
+				<xsl:choose>
+					<xsl:when test="current-group()/self::symbol[.='{']">
+						<xsl:for-each-group select="current-group()" group-ending-with="symbol[.='}']">
+							<xsl:choose>
+								<xsl:when test="current-group()/self::symbol[.='}']">
+									<attributes>
+										<xsl:copy-of select="current-group()[not(self::symbol[.=('{','}')])]" />
+									</attributes>
+								</xsl:when>
+								<xsl:otherwise>
+									<selectors>
+										<xsl:copy-of select="current-group()" />
+									</selectors>
+								</xsl:otherwise>
+							</xsl:choose>
+						</xsl:for-each-group>
+					</xsl:when>
+					<xsl:otherwise>
+						<selectors>
+							<xsl:copy-of select="current-group()" />
+						</selectors>
+					</xsl:otherwise>
+				</xsl:choose>
+			</xsl:for-each-group>
+		</xsl:variable>
+		<xsl:copy-of select="$mode1"/> <!-- change $mode0 to $mode[0-9] for easy debug -->
 	</xsl:template>
 
 </xsl:stylesheet>
