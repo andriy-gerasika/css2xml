@@ -213,7 +213,7 @@
 
 	<xsl:template mode="css2xml4" match="property[@name]">
 		<xsl:copy>
-			<xsl:apply-templates mode="css2xml4" select="@*|value|size|font|color,node() except (value|size|font|color)"/>
+			<xsl:apply-templates mode="css2xml4" select="@*|value|size|font|color|keyword,node() except (value|size|font|color|keyword)"/>
 		</xsl:copy>
 	</xsl:template>
 	
@@ -221,4 +221,7 @@
 		<xsl:attribute name="{name()}" select="." />
 	</xsl:template>
 
+	<xsl:template mode="css2xml4" match="property[@name]/keyword">
+		<xsl:attribute name="value" select="." />
+	</xsl:template>
 </xsl:stylesheet>

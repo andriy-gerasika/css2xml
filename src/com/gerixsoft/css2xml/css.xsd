@@ -2,6 +2,36 @@
 
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
 
-	<xs:element name="css" type="xs:string" />
+	<xs:element name="css">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="rule" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="rule">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="selector" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="property" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="selector">
+		<xs:complexType>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="property">
+		<xs:complexType>
+			<xs:attribute name="name" type="xs:Name" use="required"/>
+			<xs:attribute name="value"/>
+			<xs:attribute name="font"/>
+			<xs:attribute name="size"/>
+			<xs:attribute name="color"/>
+		</xs:complexType>
+	</xs:element>
 
 </xs:schema>
