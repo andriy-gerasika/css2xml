@@ -25,24 +25,47 @@ public class CssToXml {
 
 	public static void main(String[] args) throws ParserConfigurationException, IOException, SAXException, TransformerException {
 		if (args.length != 2) {
-			System.err.println("usage: <css-file> <xml-file>");
+			System.err.println("usage: <input-css-file-or-directory> <output-xml-file-or-directory>");
 			System.exit(-1);
 		}
-		css2xml(new File(args[0]), new File(args[1]));
+		CssToXml css2xml = new CssToXml(true);
+		css2xml.transform(new File(args[0]), new File(args[1]));
 		System.out.println("ok");
 	}
 
-	public static void css2xml(File inputFile, File outputFile) throws ParserConfigurationException, IOException, SAXException, TransformerException {
+	private Validator validator;
+
+	public CssToXml(boolean validate) throws SAXException {
+		if (validate) {
+			SchemaFactory schemaFactory = SchemaFactory.newInstance("http://www.w3.org/2001/XMLSchema");
+			Schema schema = schemaFactory.newSchema(new StreamSource(CssToXml.class.getResourceAsStream("css.xsd")));
+			validator = schema.newValidator();
+			validator.setErrorHandler(new __ErrorHandler());
+		}
+	}
+
+	public void transform(File input, File output) throws ParserConfigurationException, IOException, SAXException, TransformerException {
+		if (input.isDirectory()) {
+			output.mkdir();
+			for (File child : input.listFiles()) {
+				if (child.isDirectory()) {
+					transform(child, new File(output, child.getName()));
+				} else if (child.getName().endsWith(".css")) {
+					transform(child, new File(output, child.getName().concat(".xml")));
+				}
+			}
+			return;
+		}
 		SAXTransformerFactory handlerFactory = (SAXTransformerFactory) SAXTransformerFactory.newInstance();
 		TransformerHandler handler = handlerFactory.newTransformerHandler(new StreamSource(CssToXml.class.getResource("css2xml.xsl").toString()));
 		handler.getTransformer().setOutputProperty("indent", "yes");
-		handler.setResult(new StreamResult(outputFile));
+		handler.setResult(new StreamResult(output));
 		handler.startDocument();
 		handler.startElement("", "css", "css", new AttributesImpl());
 		{
 			char[] text;
 			{
-				InputStream inputStream = new FileInputStream(inputFile);
+				InputStream inputStream = new FileInputStream(input);
 				try {
 					ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 					try {
@@ -63,32 +86,30 @@ public class CssToXml {
 		}
 		handler.endElement("", "css", "css");
 		handler.endDocument();
+		if (validator != null) {
+			validator.validate(new StreamSource(output));
+		}
+	}
 
-		SchemaFactory factory = SchemaFactory.newInstance("http://www.w3.org/2001/XMLSchema");
-		Schema schema = factory.newSchema(new StreamSource(CssToXml.class.getResourceAsStream("css.xsd")));
-		Validator validator = schema.newValidator();
-		validator.setErrorHandler(new ErrorHandler() {
-			@Override
-			public void warning(SAXParseException exception) throws SAXException {
-				log("warning", exception);
-			}
+	private static final class __ErrorHandler implements ErrorHandler {
+		@Override
+		public void warning(SAXParseException exception) throws SAXException {
+			log("warning", exception);
+		}
 
-			@Override
-			public void fatalError(SAXParseException exception) throws SAXException {
-				log("fatal error", exception);
-			}
+		@Override
+		public void fatalError(SAXParseException exception) throws SAXException {
+			log("fatal error", exception);
+		}
 
-			@Override
-			public void error(SAXParseException exception) throws SAXException {
-				log("error", exception);
-			}
+		@Override
+		public void error(SAXParseException exception) throws SAXException {
+			log("error", exception);
+		}
 
-			public void log(String type, SAXParseException exception) {
-				System.err.println(type + " at line: " + exception.getLineNumber() + " col:" + exception.getColumnNumber() + " message: "
-						+ exception.getMessage());
-			}
-		});
-		validator.validate(new StreamSource(outputFile));
+		public void log(String type, SAXParseException exception) {
+			System.err.println(type + " at line: " + exception.getLineNumber() + " col:" + exception.getColumnNumber() + " message: " + exception.getMessage());
+		}
 	}
 
 }
